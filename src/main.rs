@@ -1,6 +1,6 @@
 use yew::prelude::*;
 use gloo::net::http::Request;
-use serde::Serialize;
+use serde::{Serialize,Deserialize};
 use wasm_bindgen_futures::spawn_local;
 use std::fmt;
 
@@ -12,6 +12,11 @@ struct TestData {
     check: bool,
     int_data: i32,
     float_data:f64,
+}
+
+#[derive(Deserialize)]
+struct ServerMessage {
+    status: i32,
 }
 
 #[derive(Properties,PartialEq)]
@@ -70,19 +75,14 @@ fn send_data(props: &DataProp) -> Html {
                     .unwrap()
                     .send()
                     .await;
-                match response {
-                    Ok(response) => {
-                        if response.status() == 200 {
-                            status.set("Data sent successfully".to_string());
-                        }
-                        else {
-                            status.set(format!("Error {}",response.status()));
-                        }
-
+                match response.unwrap().json::<ServerMessage>().await{
+                    Ok(json) => {
+                        status.set(format!("{}",json.status))
                     }
                     Err(e) => {
-                        status.set(format!("Error {}",e));
+                        status.set(format!("Error:{}",e))
                     }
+
                 }
             })
         })
