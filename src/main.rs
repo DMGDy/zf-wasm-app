@@ -4,7 +4,7 @@ use serde::{Serialize,Deserialize};
 use wasm_bindgen_futures::spawn_local;
 use std::fmt;
 
-const ADDRESS: &str = "http://10.0.0.196:8080";
+const ADDRESS: &str = "http://192.168.56.1:8080";
 
 #[derive(Default,Serialize,Clone,PartialEq)]
 struct TestData {
@@ -98,7 +98,7 @@ fn send_data(props: &DataProp) -> Html {
         </div>
     }
 
-}
+
 
 
 #[function_component(ClickDev)]
@@ -173,6 +173,7 @@ fn app() -> Html {
        </>
     }
 }
+
 
 fn main() {
     yew::Renderer::<App>::new().render();
