@@ -4,7 +4,7 @@ use serde::{Serialize,Deserialize};
 use wasm_bindgen_futures::spawn_local;
 use std::fmt;
 
-const ADDRESS: &str = "http://10.0.0.196:8080";
+const ADDRESS: &str = "http://172.20.10.6:8080";
 
 #[derive(Default,Serialize,Clone,PartialEq)]
 struct TestData {
