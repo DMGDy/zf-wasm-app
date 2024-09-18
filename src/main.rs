@@ -1,10 +1,12 @@
 use yew::prelude::*;
 use gloo::net::http::Request;
+use web_sys::wasm_bindgen::JsCast;
 use serde::{Serialize,Deserialize};
 use wasm_bindgen_futures::spawn_local;
+use web_sys;
 use std::fmt;
 
-const ADDRESS: &str = "http://172.20.10.6:8080";
+const ADDRESS: &str = "http://localhost:8080";
 
 #[derive(Default,Serialize,Clone,PartialEq)]
 struct TestData {
@@ -57,6 +59,7 @@ impl DeviceRef {
         }
     }
 }
+
 
 
 #[function_component(SendData)]
@@ -122,6 +125,7 @@ fn child(dev_prop: &DeviceRef) -> Html {
 fn app() -> Html {
     let dropdown_visible = use_state(|| false);
     let chosen_dev = use_state(|| "None".to_string());
+    let use_string_pot = use_state(|| false);
 
     let toggle_dropdown = {
         let dropdown_visible = dropdown_visible.clone();
@@ -142,6 +146,19 @@ fn app() -> Html {
             data.set(TestData {
                 device: device.to_string(),
                 ..(*data)
+            });
+        })
+    };
+
+    let on_string_pot_change = {
+        let use_string_pot = use_string_pot.clone();
+        let testdata = testdata.clone();
+        Callback::from(move |e: web_sys::Event| {
+            let checked = e.target().unwrap().unchecked_into::<web_sys::HtmlInputElement>().checked();
+            use_string_pot.set(checked);
+            testdata.set(TestData {
+                check: checked,
+                ..(*testdata).clone()  // Clone the contents of testdata
             });
         })
     };
@@ -167,6 +184,18 @@ fn app() -> Html {
                             <ClickDev ..DeviceRef::new(device, on_device_select.clone()) />
                         }
                     }).collect::<Html>()}
+                 </div>
+            }
+            if (*chosen_dev) == Device::BST.to_string() {
+                <div>
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            checked={*use_string_pot} 
+                            onchange={on_string_pot_change.clone()} 
+                        />
+                        {" Use String Potentiometer"}
+                    </label>
                 </div>
             }
            <SendData data={(*testdata).clone()} />
