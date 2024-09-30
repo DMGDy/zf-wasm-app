@@ -6,7 +6,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys;
 use std::fmt;
 
-const ADDRESS: &str = "http://localhost:8080";
+const ADDRESS: &str = "http://172.20.10.7:8080";
 
 #[derive(Default,Serialize,Clone,PartialEq)]
 struct TestData {
@@ -18,7 +18,8 @@ struct TestData {
 
 #[derive(Deserialize)]
 struct ServerMessage {
-    status: i32,
+    code: i32,
+    status: String,
 }
 
 #[derive(Properties,PartialEq)]
@@ -72,7 +73,6 @@ fn send_data(props: &DataProp) -> Html {
             let data = data.clone();
             let status = status.clone();
             spawn_local(async move {
-
                 let response = Request::post(ADDRESS)
                     .json(&data)
                     .unwrap()
@@ -80,7 +80,8 @@ fn send_data(props: &DataProp) -> Html {
                     .await;
                 match response.unwrap().json::<ServerMessage>().await{
                     Ok(json) => {
-                        status.set(format!("{}",json.status))
+                        status.set(format!("Status Code:{}\n
+                                Status: {}",json.code,json.status))
                     }
                     Err(e) => {
                         status.set(format!("Error:{}",e))
