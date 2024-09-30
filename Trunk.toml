@@ -1,2 +1,4 @@
 [build]
 release=true
+filehash=false
+dist="/home/dylandy/yocto/poky/meta-zf-project/recipes-webserver/wasm-app-files/files"
