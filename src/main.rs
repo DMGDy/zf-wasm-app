@@ -15,12 +15,17 @@ struct TestData {
     int_data: i32,
     float_data:f64,
 }
-
-#[derive(Deserialize)]
-struct ServerMessage {
-    code: i32,
-    status: String,
+ 
+#[derive(Deserialize,Clone)]
+enum ServerResponse {
+    Awake,
+    InProgress,
+    Done,
+    Error,
+    Idle,
 }
+
+
 
 #[derive(Properties,PartialEq)]
 struct DataProp {
@@ -33,6 +38,38 @@ enum Device {
     CWS,
     PrS,
     ESCM,
+}
+
+impl ServerResponse {
+    fn from_i32(n: i32) -> ServerResponse {
+        match n {
+            0 => Self::Idle,
+            1 => Self::Awake,
+            2 => Self::InProgress,
+            3 => Self::Done,
+            4 => Self:: Error,
+            _ => Self:: Error,
+        }
+    }
+    fn code(&self) -> i32 {
+        match self {
+            Self::Idle => 0,
+            Self::Awake => 1,
+            Self::InProgress => 2,
+            Self::Done => 3,
+            Self::Error => -1,
+        }
+    }
+
+    fn message(&self) -> &str{
+        match self {
+            Self::Idle => "Awaiting input",
+            Self::Error => "Error has occurred either on the server or microcontroller!",
+            Self::Awake => "Server is up and has loaded microcontroller firmware",
+            Self::InProgress => "Microcontroller has began testing",
+            Self::Done => "Test results are available",
+        }
+    }
 }
 
 impl fmt::Display for Device {
@@ -65,7 +102,7 @@ impl DeviceRef {
 
 #[function_component(SendData)]
 fn send_data(props: &DataProp) -> Html {
-    let status = use_state(|| String::new());
+    let status = use_state(|| ServerResponse::Idle);
     let onclick = {
         let data = props.data.clone();
         let status = status.clone();
@@ -78,15 +115,13 @@ fn send_data(props: &DataProp) -> Html {
                     .unwrap()
                     .send()
                     .await;
-                match response.unwrap().json::<ServerMessage>().await{
-                    Ok(json) => {
-                        status.set(format!("Status Code:{}\n
-                                Status: {}",json.code,json.status))
+                match response.unwrap().json::<i32>().await{
+                    Ok(code) => {
+                        status.set(ServerResponse::from_i32(code));
                     }
-                    Err(e) => {
-                        status.set(format!("Error:{}",e))
+                    Err(_) => {
+                        status.set(ServerResponse::Error)
                     }
-
                 }
             })
         })
@@ -97,7 +132,11 @@ fn send_data(props: &DataProp) -> Html {
                 {"Start Test"}             
             </button>
             <p>
-                {"Status: "}{(*status).clone()}
+            <strong>
+                {"Status: "}
+            </strong>
+                {(*status).clone().code()}
+                {(*status).clone().message()}
             </p>
         </div>
     }
@@ -192,8 +231,8 @@ fn app() -> Html {
                     <label>
                         <input 
                             type="checkbox" 
-                            checked={*use_string_pot} 
-                            onchange={on_string_pot_change.clone()} 
+                            checked  = {*use_string_pot} 
+                            onchange = {on_string_pot_change.clone()} 
                         />
                         {" Use String Potentiometer"}
                     </label>
