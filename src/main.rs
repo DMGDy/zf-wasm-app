@@ -132,15 +132,14 @@ fn send_data(props: &DataProp) -> Html {
                 {"Start Test"}             
             </button>
             <p>
-            <strong>
-                {"Status: "}
-            </strong>
+                <strong> {"Code: "} </strong>
                 {(*status).clone().code()}
+                <br/>
+                <strong> {"Status:"}</strong>
                 {(*status).clone().message()}
             </p>
         </div>
     }
-
 }
 
 
